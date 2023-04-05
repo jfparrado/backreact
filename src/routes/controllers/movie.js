@@ -93,6 +93,14 @@ async function joinGendersNames(movies) {
   });
   return movies;
 }
+async function getGenreCodeByName(genreName) {
+  const genreList = await getMovieGenders();
+  const genre = genreList.find(
+    (genre) => genre.name.toLowerCase() === genreName.toLowerCase()
+  );
+  return genre ? genre.id : null;
+}
+
 function getNamesFromObjectsArray(objectsArray) {
   return objectsArray.map((object) => object.name);
 }
@@ -134,8 +142,12 @@ const getLatestMovies = async () => {
     const infoApi = await axios.get(
       `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=en-US&sort_by=release_date.desc&include_adult=false&include_video=false&page=1&primary_release_date.lte=${todaysDate}&primary_release_date.gte=${tenDaysAgo}`
     );
-    const data = infoApi.data.results;
-    let moviesInfo = getImportantInfoArray(data);
+    const infoApi2 = await axios.get(
+      `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=en-US&sort_by=release_date.desc&include_adult=false&include_video=false&page=2&primary_release_date.lte=${todaysDate}&primary_release_date.gte=${tenDaysAgo}`
+    );
+    const data = [...infoApi.data.results, ...infoApi2.data.results];
+    const filteredData = data.filter((movie) => movie.poster_path !== null);
+    let moviesInfo = getImportantInfoArray(filteredData);
     moviesInfo = await joinGendersNames(moviesInfo);
     return moviesInfo;
   } catch (error) {
@@ -151,6 +163,20 @@ const getMovieGenders = async () => {
     const data = infoApi.data.genres;
     const genders = data;
     return genders;
+  } catch (error) {
+    console.log("El error controller getMovieGenders es:", error.message);
+  }
+};
+
+const getMoviesByGender = async (movie_gender) => {
+  try {
+    const genreCode = await getGenreCodeByName(movie_gender);
+    const infoApi = await axios.get(
+      `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&with_genres=${genreCode}`
+    );
+    const data = infoApi.data.results;
+    let moviesInfo = getImportantInfoArray(data);
+    return moviesInfo;
   } catch (error) {
     console.log("El error controller getMovieGenders es:", error.message);
   }
@@ -179,5 +205,5 @@ module.exports = {
   getMovieGenders,
   getLatestMovies,
   getMovieById,
+  getMoviesByGender,
 };
-// como hago pa crear dietas autimaticamente? osea sin meterle yo manualmente el id
