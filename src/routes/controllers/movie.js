@@ -18,11 +18,11 @@ function getTenDaysAgo() {
   const day = String(tenDaysAgo.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
-
-function getImportantInfo(data) {
+function getImportantInfoArray(data) {
   const importantInfo = data.map((movie) => {
     //aca transformamos el array con strings a un array con objetos dentro
     const {
+      id,
       genre_ids,
       original_language,
       original_title,
@@ -32,6 +32,7 @@ function getImportantInfo(data) {
       vote_average,
     } = movie;
     const newInfo = {
+      id,
       genre_ids,
       original_language,
       original_title,
@@ -44,6 +45,43 @@ function getImportantInfo(data) {
   });
   return importantInfo;
 }
+function getImportantInfoObject(data) {
+  const {
+    budget,
+    genres,
+    homepage,
+    id,
+    original_language,
+    original_title,
+    overview,
+    popularity,
+    poster_path,
+    release_date,
+    revenue,
+    runtime,
+    spoken_languages,
+    status,
+    vote_average,
+  } = data;
+  const newInfo = {
+    budget,
+    genres,
+    homepage,
+    id,
+    original_language,
+    original_title,
+    overview,
+    popularity,
+    poster_path,
+    release_date,
+    revenue,
+    runtime,
+    spoken_languages,
+    status,
+    vote_average,
+  };
+  return newInfo;
+}
 async function joinGendersNames(movies) {
   const genderList = await getMovieGenders();
   movies.forEach((movie) => {
@@ -55,14 +93,19 @@ async function joinGendersNames(movies) {
   });
   return movies;
 }
-
+function getNamesFromObjectsArray(objectsArray) {
+  return objectsArray.map((object) => object.name);
+}
+function getEnglishNames(languages) {
+  return languages.map((lang) => lang.english_name);
+}
 const getAllMovies = async () => {
   try {
     const infoApi = await axios.get(
       `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1`
     );
     const data = infoApi.data.results;
-    let moviesInfo = getImportantInfo(data);
+    let moviesInfo = getImportantInfoArray(data);
     moviesInfo = await joinGendersNames(moviesInfo);
     return moviesInfo;
   } catch (error) {
@@ -76,7 +119,7 @@ const getTopRanked = async () => {
       `https://api.themoviedb.org/3/movie/top_rated?api_key=${API_KEY}&language=en-US&page=1`
     );
     const data = infoApi.data.results;
-    let moviesInfo = getImportantInfo(data);
+    let moviesInfo = getImportantInfoArray(data);
     moviesInfo = await joinGendersNames(moviesInfo);
     return moviesInfo;
   } catch (error) {
@@ -92,7 +135,7 @@ const getLatestMovies = async () => {
       `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=en-US&sort_by=release_date.desc&include_adult=false&include_video=false&page=1&primary_release_date.lte=${todaysDate}&primary_release_date.gte=${tenDaysAgo}`
     );
     const data = infoApi.data.results;
-    let moviesInfo = getImportantInfo(data);
+    let moviesInfo = getImportantInfoArray(data);
     moviesInfo = await joinGendersNames(moviesInfo);
     return moviesInfo;
   } catch (error) {
@@ -113,10 +156,28 @@ const getMovieGenders = async () => {
   }
 };
 
+const getMovieById = async (movie_id) => {
+  try {
+    const infoApi = await axios.get(
+      `https://api.themoviedb.org/3/movie/${movie_id}?api_key=${API_KEY}&language=en-US`
+    );
+    const data = infoApi.data;
+    let movieInfo = getImportantInfoObject(data);
+    movieInfo.genres = await getNamesFromObjectsArray(movieInfo.genres);
+    movieInfo.spoken_languages = await getEnglishNames(
+      movieInfo.spoken_languages
+    );
+    return movieInfo;
+  } catch (error) {
+    console.log("El error controller getMovieById es:", error.message);
+  }
+};
+
 module.exports = {
   getAllMovies,
   getTopRanked,
   getMovieGenders,
   getLatestMovies,
+  getMovieById,
 };
 // como hago pa crear dietas autimaticamente? osea sin meterle yo manualmente el id
