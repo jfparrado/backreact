@@ -7,6 +7,7 @@ const {
   getLatestMovies,
   getMovieById,
   getMoviesByGender,
+  getMoviesByName,
 } = require("../controllers/movie");
 
 router.get("/", async (req, res) => {
@@ -40,6 +41,16 @@ router.get("/latestmovies", async (req, res) => {
   try {
     const latestMovies = await getLatestMovies();
     res.status(200).send(latestMovies);
+  } catch (error) {
+    res.status(400).send(error.message);
+  }
+});
+
+router.get("/search/:movie_name", async (req, res) => {
+  const { movie_name } = req.params;
+  try {
+    const moviesByName = await getMoviesByName(movie_name);
+    res.status(200).send(moviesByName);
   } catch (error) {
     res.status(400).send(error.message);
   }

@@ -182,6 +182,20 @@ const getMoviesByGender = async (movie_gender) => {
   }
 };
 
+const getMoviesByName = async (movie_name) => {
+  try {
+    const infoApi = await axios.get(
+      `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${movie_name}`
+    );
+    const data = infoApi.data.results;
+    let moviesInfo = getImportantInfoArray(data);
+    moviesInfo = await joinGendersNames(moviesInfo);
+    return moviesInfo;
+  } catch (error) {
+    console.log("El error controller getMovieGenders es:", error.message);
+  }
+};
+
 const getMovieById = async (movie_id) => {
   try {
     const infoApi = await axios.get(
@@ -206,4 +220,5 @@ module.exports = {
   getLatestMovies,
   getMovieById,
   getMoviesByGender,
+  getMoviesByName,
 };
