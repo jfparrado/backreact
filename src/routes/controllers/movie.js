@@ -1,22 +1,25 @@
 const axios = require("axios");
 const { Movie } = require("../../db");
+const basicUrl = "https://api.themoviedb.org/3/discover/movie?api_key=";
 const { API_KEY } = process.env;
+
+function getFormattedDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const formattedDate = `${year}-${month}-${day}`;
+  return formattedDate;
+}
 function getTodayDate() {
   const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-  const formattedDate = `${year}-${month}-${day}`;
+  const formattedDate = getFormattedDate(today);
   return formattedDate;
 }
 function getTenDaysAgo() {
   const today = new Date();
   const tenDaysAgo = new Date(today);
-  tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
-  const year = tenDaysAgo.getFullYear();
-  const month = String(tenDaysAgo.getMonth() + 1).padStart(2, "0");
-  const day = String(tenDaysAgo.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  const formattedDate = getFormattedDate(tenDaysAgo);
+  return formattedDate;
 }
 function getImportantInfoArray(data) {
   const importantInfo = data.map((movie) => {
@@ -110,7 +113,7 @@ function getEnglishNames(languages) {
 const getAllMovies = async () => {
   try {
     const infoApi = await axios.get(
-      `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1`
+      `${basicUrl}${API_KEY}&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1`
     );
     const data = infoApi.data.results;
     let moviesInfo = getImportantInfoArray(data);
@@ -140,10 +143,10 @@ const getLatestMovies = async () => {
     const todaysDate = getTodayDate();
     const tenDaysAgo = getTenDaysAgo();
     const infoApi = await axios.get(
-      `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=en-US&sort_by=release_date.desc&include_adult=false&include_video=false&page=1&primary_release_date.lte=${todaysDate}&primary_release_date.gte=${tenDaysAgo}`
+      `${basicUrl}${API_KEY}&language=en-US&sort_by=release_date.desc&include_adult=false&include_video=false&page=1&primary_release_date.lte=${todaysDate}&primary_release_date.gte=${tenDaysAgo}`
     );
     const infoApi2 = await axios.get(
-      `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=en-US&sort_by=release_date.desc&include_adult=false&include_video=false&page=2&primary_release_date.lte=${todaysDate}&primary_release_date.gte=${tenDaysAgo}`
+      `${basicUrl}${API_KEY}&language=en-US&sort_by=release_date.desc&include_adult=false&include_video=false&page=2&primary_release_date.lte=${todaysDate}&primary_release_date.gte=${tenDaysAgo}`
     );
     const data = [...infoApi.data.results, ...infoApi2.data.results];
     const filteredData = data.filter((movie) => movie.poster_path !== null);
@@ -172,7 +175,7 @@ const getMoviesByGender = async (movie_gender) => {
   try {
     const genreCode = await getGenreCodeByName(movie_gender);
     const infoApi = await axios.get(
-      `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&with_genres=${genreCode}`
+      `${basicUrl}${API_KEY}&with_genres=${genreCode}`
     );
     const data = infoApi.data.results;
     let moviesInfo = getImportantInfoArray(data);
