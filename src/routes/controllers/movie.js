@@ -1,8 +1,33 @@
 const axios = require("axios");
-const { Movie } = require("../../db");
+const admin = require("firebase-admin");
+const serviceAccount = require("../../movies.json");
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 const basicUrl = "https://api.themoviedb.org/3/discover/movie?api_key=";
-const { API_KEY } = process.env;
+// const API_KEY = process.env.API_KEY;
+const API_KEY = "62abf72420cd2bc60ec7409096a6ef2a";
 
+async function verifyToken(req, res, funcion) {
+  let result = "";
+  const token = req.headers.jwt;
+  await admin
+    .auth()
+    .verifyIdToken(token)
+    .then(async (decodedToken) => {
+      result = "valido";
+      console.log(result);
+      const moviesResult = await funcion();
+      res.status(200).send(moviesResult);
+      // Puedes acceder a información del usuario en decodedToken
+    })
+    .catch((error) => {
+      // El token es inválido o ha expirado
+      result = "invalido";
+      console.log(result);
+      res.status(401).send("user invalid");
+    });
+}
 function getFormattedDate(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -142,6 +167,7 @@ const getLatestMovies = async () => {
   try {
     const todaysDate = getTodayDate();
     const tenDaysAgo = getTenDaysAgo();
+    console.log("API_KEY:", API_KEY);
     const infoApi = await axios.get(
       `${basicUrl}${API_KEY}&language=en-US&sort_by=release_date.desc&include_adult=false&include_video=false&page=1&primary_release_date.lte=${todaysDate}&primary_release_date.gte=${tenDaysAgo}`
     );
@@ -217,6 +243,7 @@ const getMovieById = async (movie_id) => {
 };
 
 module.exports = {
+  verifyToken,
   getAllMovies,
   getTopRanked,
   getMovieGenders,

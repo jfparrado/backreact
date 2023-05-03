@@ -1,6 +1,7 @@
 const { Router } = require("express");
 const router = Router();
 const {
+  verifyToken,
   getAllMovies,
   getTopRanked,
   getMovieGenders,
@@ -39,8 +40,7 @@ router.get("/moviegenders", async (req, res) => {
 
 router.get("/latestmovies", async (req, res) => {
   try {
-    const latestMovies = await getLatestMovies();
-    res.status(200).send(latestMovies);
+    await verifyToken(req, res, getLatestMovies);
   } catch (error) {
     res.status(400).send(error.message);
   }
