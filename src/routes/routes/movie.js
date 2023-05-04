@@ -38,6 +38,14 @@ router.get("/moviegenders", async (req, res) => {
   }
 });
 
+router.get("/latestmoviespreview", async (req, res) => {
+  try {
+    const moviesResult = await getLatestMovies();
+    res.status(200).send(moviesResult);
+  } catch (error) {
+    res.status(400).send(error.message);
+  }
+});
 router.get("/latestmovies", async (req, res) => {
   try {
     await verifyToken(req, res, getLatestMovies);
