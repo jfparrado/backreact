@@ -49,8 +49,7 @@ router.get("/latestmovies", async (req, res) => {
 router.get("/search/:movie_name", async (req, res) => {
   const { movie_name } = req.params;
   try {
-    const moviesByName = await getMoviesByName(movie_name);
-    res.status(200).send(moviesByName);
+    await verifyToken(req, res, getMoviesByName, movie_name);
   } catch (error) {
     res.status(400).send(error.message);
   }
@@ -59,8 +58,7 @@ router.get("/search/:movie_name", async (req, res) => {
 router.get("/moviesbygender/:movie_gender", async (req, res) => {
   const { movie_gender } = req.params;
   try {
-    const moviesByGenre = await getMoviesByGender(movie_gender);
-    res.status(200).send(moviesByGenre);
+    await verifyToken(req, res, getMoviesByGender, movie_gender);
   } catch (error) {
     res.status(400).send(error.message);
   }
@@ -69,8 +67,7 @@ router.get("/moviesbygender/:movie_gender", async (req, res) => {
 router.get("/detailmovie/:movie_id", async (req, res) => {
   const { movie_id } = req.params;
   try {
-    const latestMovies = await getMovieById(movie_id);
-    res.status(200).send(latestMovies);
+    await verifyToken(req, res, getMovieById, movie_id);
   } catch (error) {
     res.status(400).send(error.message);
   }
